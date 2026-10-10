@@ -1,0 +1,72 @@
+name: CI
+
+on:
+    pull_request:
+        branches: [main]
+    push:
+        branches: [main]
+
+jobs:
+    lint-and-typecheck:
+        name: Lint & Typecheck
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@v4
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20.x"
+                  cache: "npm"
+            - run: npm ci
+            - run: npm run lint
+            - run: npm run typecheck
+
+    test:
+        name: Test
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@v4
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20.x"
+                  cache: "npm"
+            - run: npm ci
+            - run: npm run test:coverage
+            - name: Upload coverage
+              uses: codecov/codecov-action@v4
+              if: always()
+              with:
+                  token: ${{ secrets.CODECOV_TOKEN }}
+                  fail_ci_if_error: false
+
+    build:
+        name: Build
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        needs: [lint-and-typecheck, test]
+        steps:
+            - uses: actions/checkout@v4
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20.x"
+                  cache: "npm"
+            - run: npm ci
+            - run: npm run build
+            - name: Verify package exports
+              run: |
+                  node -e "
+                      const pkg = await import('./package.json');
+                      const mod = await import('./dist/index.js');
+                      console.log('ESM import OK');
+                  "
+                  node -e "
+                      const mod = require('./dist/cjs/index.cjs');
+                      console.log('CJS require OK');
+                  "

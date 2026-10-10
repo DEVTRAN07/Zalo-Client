@@ -1,0 +1,36 @@
+version: 2
+updates:
+    - package-ecosystem: "npm"
+      directory: "/"
+      schedule:
+          interval: "weekly"
+          day: "monday"
+          time: "09:00"
+      labels:
+          - "dependencies"
+          - "npm"
+      commit-message:
+          prefix: "chore(deps)"
+      groups:
+          dev-dependencies:
+              patterns:
+                  - "@*"
+                  - "eslint*"
+                  - "typescript*"
+                  - "vitest*"
+                  - "prettier*"
+                  - "husky*"
+                  - "lint-staged*"
+              update-types:
+                  - "minor"
+                  - "patch"
+          production-dependencies:
+              patterns:
+                  - "form-data"
+                  - "json-bigint"
+                  - "pako"
+                  - "tough-cookie"
+                  - "ws"
+              update-types:
+                  - "minor"
+                  - "patch"
