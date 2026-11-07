@@ -117,15 +117,9 @@ async function extractCredentials() {
 
 async function copyToClipboard() {
   if (!extractedData) return;
-  const output = {
-    imei: extractedData.imei,
-    cookie: extractedData.cookie,
-    userAgent: extractedData.userAgent,
-    language: extractedData.language,
-  };
   try {
-    await navigator.clipboard.writeText(JSON.stringify(output, null, 2));
-    showStatus("success", "Đã sao chép JSON vào clipboard!");
+    await navigator.clipboard.writeText(JSON.stringify(extractedData.cookie, null, 2));
+    showStatus("success", "Đã sao chép cookie JSON vào clipboard!");
     copyBtn.textContent = "Đã sao chép!";
     setTimeout(() => {
       copyBtn.innerHTML = `
