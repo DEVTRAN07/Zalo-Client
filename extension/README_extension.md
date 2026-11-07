@@ -5,7 +5,7 @@ Tiện ích mở rộng Manifest V3 chạy trên **Zalo Web** (`https://chat.zal
 ## Tính năng
 - Trích xuất cookie Zalo (`zpw_*`) qua `chrome.cookies` API.
 - Lấy `IMEI` từ `localStorage` của Zalo Web (`z_uuid` hoặc `sh_z_uuid`) theo chuẩn zlapi.
-- Popup hiển thị thông tin (kèm nguồn IMEI) và cho phép **Sao chép JSON** theo định dạng tương thích `Credentials`.
+- Popup hiển thị IMEI và Cookies gộp trong một phần thống nhất (kiểu zlapi), kèm nguồn IMEI và số lượng cookie, cho phép **Sao chép JSON** theo định dạng tương thích `Credentials`.
 
 ## Cài đặt (Chrome/Edge)
 1. Mở trang quản lý extension:
@@ -56,7 +56,7 @@ JSON được sao chép tương thích với kiểu `Credentials` của `zalo-cl
 - `background.js` — Service worker: **chỉ** lấy cookie qua `chrome.cookies` (không dùng `navigator`).
 - `content.js` — Content script trên `chat.zalo.me`: lấy `userAgent`/`language` và **IMEI từ `localStorage`** (`z_uuid`/`sh_z_uuid`).
 - `injected.js` — Script tiêm vào page (tham khảo); lấy dữ liệu `zpw_*` và **IMEI từ `localStorage`** trong ngữ cảnh trang.
-- `popup.html` / `popup.js` — UI; nhận IMEI từ page data (content script), ghép với cookies từ background, hiển thị nguồn IMEI và xuất JSON.
+- `popup.html` / `popup.js` — UI; nhận IMEI từ page data (content script), ghép với cookies từ background, hiển thị IMEI + Cookies gộp (kiểu zlapi) và xuất JSON.
 - `icons/` — `icon16.png`, `icon48.png`, `icon128.png`.
 
 ## Lưu ý bảo mật

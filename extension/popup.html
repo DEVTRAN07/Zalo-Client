@@ -42,6 +42,14 @@
     .cred-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
     .badge-success { background: #f0fff4; color: #22863a; }
     .badge-danger { background: #fff5f5; color: #cb2431; }
+    
+    .cred-unified { }
+    .cred-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .cred-label-inline { font-size: 12px; font-weight: 600; color: #586069; }
+    .cred-secondary { margin-top: 10px; font-size: 11px; color: #586069; }
+    .cred-secondary div { margin-bottom: 4px; }
+    .cred-secondary-value { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 10px; color: #24292e; word-break: break-all; }
+
   </style>
 </head>
 <body>
@@ -56,21 +64,19 @@
     <div id="loading" class="loading hidden"><div class="spinner"></div><span>Đang trích xuất...</span></div>
 
     <div id="credentials" class="credentials hidden">
-      <div class="cred-field">
-        <div class="cred-label"><span>IMEI</span><span id="imeiBadge" class="cred-badge badge-danger">Chưa có</span></div>
+      <div class="cred-unified">
+        <div class="cred-row">
+          <span class="cred-label-inline">IMEI</span>
+          <span id="imeiBadge" class="cred-badge badge-danger">Chưa có</span>
+          <span id="cookieCount" class="cred-badge badge-danger">0 CK</span>
+        </div>
         <div id="imeiValue" class="cred-value short"></div>
-      </div>
-      <div class="cred-field">
-        <div class="cred-label"><span>User Agent</span></div>
-        <div id="uaValue" class="cred-value short"></div>
-      </div>
-      <div class="cred-field">
-        <div class="cred-label"><span>Language</span></div>
-        <div id="langValue" class="cred-value short"></div>
-      </div>
-      <div class="cred-field">
-        <div class="cred-label"><span>Cookies (array)</span><span id="cookieCount" class="cred-badge badge-danger">0</span></div>
+        <div class="cred-label-inline" style="margin-top:8px;">Cookies (JSON array)</div>
         <div id="cookieValue" class="cred-value"></div>
+      </div>
+      <div class="cred-secondary">
+        <div><span class="cred-label-inline">User Agent:</span> <span id="uaValue" class="cred-secondary-value"></span></div>
+        <div><span class="cred-label-inline">Language:</span> <span id="langValue" class="cred-secondary-value"></span></div>
       </div>
     </div>
 

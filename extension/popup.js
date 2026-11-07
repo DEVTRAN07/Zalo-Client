@@ -31,27 +31,32 @@ function showLoading(show) {
 
 function showCredentials(data) {
   extractedData = data;
-  credentialsEl.classList.remove("hidden");
-  copyBtn.classList.remove("hidden");
+  if (credentialsEl) credentialsEl.classList.remove("hidden");
+  if (copyBtn) copyBtn.classList.remove("hidden");
 
-  imeiValue.textContent = data.imei || "";
-  const hasImei = !!data.imei;
-  if (hasImei) {
-    const source = data.imeiSource ? `localStorage (${data.imeiSource})` : "localStorage";
-    imeiBadge.textContent = source;
-    imeiBadge.className = "cred-badge badge-success";
-  } else {
-    imeiBadge.textContent = "Chưa có";
-    imeiBadge.className = "cred-badge badge-danger";
+  if (imeiValue) imeiValue.textContent = (data && data.imei) || "";
+  const hasImei = !!(data && data.imei);
+  if (imeiBadge) {
+    if (hasImei) {
+      const source = (data && data.imeiSource) ? `localStorage (${data.imeiSource})` : "localStorage";
+      imeiBadge.textContent = source;
+      imeiBadge.className = "cred-badge badge-success";
+    } else {
+      imeiBadge.textContent = "Chưa có";
+      imeiBadge.className = "cred-badge badge-danger";
+    }
   }
 
-  uaValue.textContent = data.userAgent || "";
-  langValue.textContent = data.language || "vi";
+  if (uaValue) uaValue.textContent = (data && data.userAgent) || "";
+  if (langValue) langValue.textContent = (data && data.language) || "vi";
 
-  cookieValue.textContent = JSON.stringify(data.cookie || [], null, 2);
-  const count = Array.isArray(data.cookie) ? data.cookie.length : 0;
-  cookieCount.textContent = String(count);
-  cookieCount.className = count > 0 ? "cred-badge badge-success" : "cred-badge badge-danger";
+  const cookies = (data && data.cookie) || [];
+  if (cookieValue) cookieValue.textContent = JSON.stringify(cookies, null, 2);
+  const count = Array.isArray(cookies) ? cookies.length : 0;
+  if (cookieCount) {
+    cookieCount.textContent = count + " CK";
+    cookieCount.className = count > 0 ? "cred-badge badge-success" : "cred-badge badge-danger";
+  }
 }
 
 async function queryActiveTab() {
