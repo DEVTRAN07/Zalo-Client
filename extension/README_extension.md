@@ -4,8 +4,8 @@ Tiện ích mở rộng Manifest V3 chạy trên **Zalo Web** (`https://chat.zal
 
 ## Tính năng
 - Trích xuất cookie Zalo (`zpw_*`) qua `chrome.cookies` API.
-- Tạo `IMEI` từ `userAgent` theo cùng thuật toán với `zalo-client`: `uuid-md5(userAgent)`.
-- Popup hiển thị thông tin và cho phép **Sao chép JSON** theo định dạng tương thích `Credentials`.
+- Lấy `IMEI` từ `localStorage` của Zalo Web (`z_uuid` hoặc `sh_z_uuid`) theo chuẩn zlapi.
+- Popup hiển thị thông tin (kèm nguồn IMEI) và cho phép **Sao chép JSON** theo định dạng tương thích `Credentials`.
 
 ## Cài đặt (Chrome/Edge)
 1. Mở trang quản lý extension:
@@ -21,12 +21,14 @@ Tiện ích mở rộng Manifest V3 chạy trên **Zalo Web** (`https://chat.zal
 3. Nhấn **Trích xuất** (popup cũng tự thử trích xuất khi đang ở trang Zalo).
 4. Nhấn **Sao chép JSON** để lấy credentials.
 
+> Lưu ý: IMEI chỉ có sau khi bạn đã đăng nhập Zalo Web (được lưu trong `localStorage` với key `z_uuid`/`sh_z_uuid`). Nếu chưa thấy IMEI, hãy đăng nhập và thử lại.
+
 ## Định dạng đầu ra
-JSON được sao chép tương thích với kiểu `Credentials` của `zalo-client`:
+JSON được sao chép tương thích với kiểu `Credentials` của `zalo-client` (IMEI lấy trực tiếp từ localStorage Zalo Web):
 
 ```json
 {
-  "imei": "<uuid>-<md5(userAgent)>",
+  "imei": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
   "cookie": [
     {
       "domain": ".zalo.me",
@@ -52,9 +54,9 @@ JSON được sao chép tương thích với kiểu `Credentials` của `zalo-cl
 ## Cấu trúc extension
 - `manifest.json` — Manifest V3, permissions: `cookies`, `activeTab`, `scripting`, `clipboardWrite`; host: `https://chat.zalo.me/*`, `https://*.zalo.me/*`.
 - `background.js` — Service worker: **chỉ** lấy cookie qua `chrome.cookies` (không dùng `navigator`).
-- `content.js` — Content script trên `chat.zalo.me`, hỗ trợ lấy `userAgent`/`language` từ trang.
-- `injected.js` — Script tiêm vào page (tham khảo); lấy dữ liệu `zpw_*` khả dụng trong ngữ cảnh trang.
-- `popup.html` / `popup.js` — UI; tạo IMEI (`uuid` + `md5(userAgent)`) trong popup (có `navigator/crypto`), ghép với cookies từ background.
+- `content.js` — Content script trên `chat.zalo.me`: lấy `userAgent`/`language` và **IMEI từ `localStorage`** (`z_uuid`/`sh_z_uuid`).
+- `injected.js` — Script tiêm vào page (tham khảo); lấy dữ liệu `zpw_*` và **IMEI từ `localStorage`** trong ngữ cảnh trang.
+- `popup.html` / `popup.js` — UI; nhận IMEI từ page data (content script), ghép với cookies từ background, hiển thị nguồn IMEI và xuất JSON.
 - `icons/` — `icon16.png`, `icon48.png`, `icon128.png`.
 
 ## Lưu ý bảo mật

@@ -1,3 +1,16 @@
+function extractIMEIFromStorage() {
+  try {
+    if (typeof localStorage === "undefined" || localStorage === null) {
+      return { imei: "", imeiSource: "" };
+    }
+    const zUuid = localStorage.getItem("z_uuid");
+    if (zUuid) return { imei: String(zUuid), imeiSource: "z_uuid" };
+    const shZUuid = localStorage.getItem("sh_z_uuid");
+    if (shZUuid) return { imei: String(shZUuid), imeiSource: "sh_z_uuid" };
+  } catch (_) {}
+  return { imei: "", imeiSource: "" };
+}
+
 function extractFromPage() {
   const cookies = document.cookie.split("; ").reduce((acc, cookie) => {
     if (!cookie) return acc;
@@ -8,11 +21,15 @@ function extractFromPage() {
     return acc;
   }, {});
 
+  const imeiData = extractIMEIFromStorage();
+
   return {
     cookies,
     userAgent: navigator.userAgent,
     language: navigator.language || "vi",
     url: window.location.href,
+    imei: imeiData.imei,
+    imeiSource: imeiData.imeiSource,
   };
 }
 
