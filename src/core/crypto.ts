@@ -7,10 +7,15 @@
  * byte.
  */
 
-import { createCipheriv, createDecipheriv, createHash, randomUUID } from "node:crypto";
-import { ZaloApiError } from "./errors.js";
+import { createCipheriv, createDecipheriv, createHash, randomUUID } from 'node:crypto';
+import { ZaloApiError } from './errors.js';
 
 const ZERO_IV = Buffer.alloc(16, 0);
+
+/**
+ * LocalStorage keys that may contain the Zalo device IMEI/identifier.
+ */
+export const ZALO_IMEI_STORAGE_KEYS = ['z_uuid', 'sh_z_uuid'] as const;
 
 type AesCbcAlgorithm = `aes-${128 | 192 | 256}-cbc`;
 
@@ -22,7 +27,7 @@ function algorithmFor(key: Buffer): AesCbcAlgorithm {
  * MD5 of a string, lowercase hex.
  */
 export function md5(data: string | Buffer): string {
-    return createHash("md5").update(data).digest("hex");
+    return createHash('md5').update(data).digest('hex');
 }
 
 /**
@@ -34,7 +39,7 @@ export function md5(data: string | Buffer): string {
  */
 export function getSignKey(type: string, params: Record<string, unknown>): string {
     const keys = Object.keys(params).sort();
-    let source = "zsecure" + type;
+    let source = 'zsecure' + type;
     for (const key of keys) source += String(params[key]);
     return md5(source);
 }
@@ -48,9 +53,9 @@ export function getSignKey(type: string, params: Record<string, unknown>): strin
  */
 export function encodeAES(secretKey: string, data: string | Buffer): string | null {
     try {
-        const key = Buffer.from(secretKey, "base64");
+        const key = Buffer.from(secretKey, 'base64');
         const cipher = createCipheriv(algorithmFor(key), key, ZERO_IV);
-        return Buffer.concat([cipher.update(data), cipher.final()]).toString("base64");
+        return Buffer.concat([cipher.update(data), cipher.final()]).toString('base64');
     } catch {
         return null;
     }
@@ -65,9 +70,9 @@ export function encodeAES(secretKey: string, data: string | Buffer): string | nu
  */
 export function decodeAES(secretKey: string, data: string): string | null {
     try {
-        const key = Buffer.from(secretKey, "base64");
+        const key = Buffer.from(secretKey, 'base64');
         const decipher = createDecipheriv(algorithmFor(key), key, ZERO_IV);
-        return Buffer.concat([decipher.update(Buffer.from(data, "base64")), decipher.final()]).toString("utf8");
+        return Buffer.concat([decipher.update(Buffer.from(data, 'base64')), decipher.final()]).toString('utf8');
     } catch {
         return null;
     }
@@ -90,16 +95,16 @@ export function decryptResp(key: string, data: string): Record<string, unknown> 
 
 function decodeWithUtf8Key(key: string, data: string): string {
     try {
-        const keyBuffer = Buffer.from(key, "utf8");
+        const keyBuffer = Buffer.from(key, 'utf8');
         const decipher = createDecipheriv(algorithmFor(keyBuffer), keyBuffer, ZERO_IV);
         return Buffer.concat([
-            decipher.update(Buffer.from(decodeURIComponent(data), "base64")),
+            decipher.update(Buffer.from(decodeURIComponent(data), 'base64')),
             decipher.final(),
-        ]).toString("utf8");
+        ]).toString('utf8');
     } catch {
         // Mirrors the reference implementation: an undecryptable payload
         // decodes to an empty string rather than throwing.
-        return "";
+        return '';
     }
 }
 
@@ -109,7 +114,7 @@ function decodeWithUtf8Key(key: string, data: string): string {
  */
 export class ParamsEncryptor {
     private zcid: string | null = null;
-    private enc_ver = "v2";
+    private enc_ver = 'v2';
     private zcid_ext: string;
     private encryptKey: string | null = null;
 
@@ -125,9 +130,9 @@ export class ParamsEncryptor {
     }
 
     private createZcid(type: number, imei: string, firstLaunchTime: number) {
-        if (!type || !imei || !firstLaunchTime) throw new ZaloApiError("createZcid: missing params");
+        if (!type || !imei || !firstLaunchTime) throw new ZaloApiError('createZcid: missing params');
         const msg = `${type},${imei},${firstLaunchTime}`;
-        this.zcid = ParamsEncryptor.encodeAES("3FC4F0D2AB50057BCE0D90D9187A22B1", msg, "hex", true);
+        this.zcid = ParamsEncryptor.encodeAES('3FC4F0D2AB50057BCE0D90D9187A22B1', msg, 'hex', true);
     }
 
     private createEncryptKey(attempt = 0): boolean {
@@ -135,12 +140,12 @@ export class ParamsEncryptor {
             const { even } = ParamsEncryptor.processStr(evenSource);
             const { even: evenOdd, odd } = ParamsEncryptor.processStr(oddSource);
             if (!even || !evenOdd || !odd) return false;
-            const key = even.slice(0, 8).join("") + evenOdd.slice(0, 12).join("") + odd.reverse().slice(0, 12).join("");
+            const key = even.slice(0, 8).join('') + evenOdd.slice(0, 12).join('') + odd.reverse().slice(0, 12).join('');
             this.encryptKey = key;
             return true;
         };
 
-        if (!this.zcid || !this.zcid_ext) throw new ZaloApiError("createEncryptKey: zcid or zcid_ext is null");
+        if (!this.zcid || !this.zcid_ext) throw new ZaloApiError('createEncryptKey: zcid or zcid_ext is null');
         try {
             const hashed = md5(this.zcid_ext).toUpperCase();
             if (derive(hashed, this.zcid) || attempt >= 3) return false;
@@ -162,7 +167,7 @@ export class ParamsEncryptor {
     }
 
     private static processStr(value: string): { even: string[] | null; odd: string[] | null } {
-        if (!value || typeof value !== "string") return { even: null, odd: null };
+        if (!value || typeof value !== 'string') return { even: null, odd: null };
         const even: string[] = [];
         const odd: string[] = [];
         [...value].forEach((char, index) => (index % 2 === 0 ? even : odd).push(char));
@@ -173,7 +178,7 @@ export class ParamsEncryptor {
         const upper = max && min && max > min ? max : 12;
         const length = Math.floor(Math.random() * (upper - min + 1)) + min;
         if (length > 12) {
-            let result = "";
+            let result = '';
             let remaining = length;
             while (remaining > 0) {
                 result += Math.random()
@@ -199,14 +204,14 @@ export class ParamsEncryptor {
     static encodeAES(
         key: string,
         message: string,
-        encoding: "hex" | "base64" = "base64",
+        encoding: 'hex' | 'base64' = 'base64',
         uppercase = false,
     ): string | null {
         if (!message) return null;
         try {
-            const keyBuffer = Buffer.from(key, "utf8");
+            const keyBuffer = Buffer.from(key, 'utf8');
             const cipher = createCipheriv(algorithmFor(keyBuffer), keyBuffer, ZERO_IV);
-            const output = Buffer.concat([cipher.update(message, "utf8"), cipher.final()]).toString(encoding);
+            const output = Buffer.concat([cipher.update(message, 'utf8'), cipher.final()]).toString(encoding);
             return uppercase ? output.toUpperCase() : output;
         } catch {
             return null;
@@ -215,7 +220,31 @@ export class ParamsEncryptor {
 }
 
 /**
+ * Extracts the Zalo device IMEI/identifier from a browser-like storage object.
+ *
+ * Zalo stores the IMEI in `localStorage` under `z_uuid` or `sh_z_uuid`.
+ *
+ * @param storage Storage provider (e.g. `window.localStorage`)
+ * @returns The IMEI value, or `null` when none is found
+ */
+export function extractIMEIFromStorage(storage: { getItem(key: string): string | null } | null | undefined): string | null {
+    if (!storage || typeof storage.getItem !== 'function') return null;
+    for (const key of ZALO_IMEI_STORAGE_KEYS) {
+        try {
+            const value = storage.getItem(key);
+            if (typeof value === 'string' && value.length > 0) return value;
+        } catch {
+            // Ignore storage access errors (e.g. restricted contexts).
+        }
+    }
+    return null;
+}
+
+/**
  * Generates a device identifier (`imei`) bound to the given user agent.
+ *
+ * @deprecated Prefer extracting the real IMEI from browser storage via
+ * {@link extractIMEIFromStorage} (keys `z_uuid` / `sh_z_uuid`) when available.
  */
 export function generateZaloUUID(userAgent: string): string {
     return `${randomUUID()}-${md5(userAgent)}`;

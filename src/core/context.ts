@@ -2,9 +2,9 @@
  * Session context: everything a logged-in session needs to talk to Zalo.
  */
 
-import type { Agent } from "http";
-import type { CookieJar } from "tough-cookie";
-import type { LogLevel } from "./logger.js";
+import type { Agent } from 'http';
+import type { CookieJar } from 'tough-cookie';
+import type { LogLevel } from './logger.js';
 
 export type UploadEventData = {
     fileUrl: string;
@@ -44,11 +44,11 @@ type SocketSettings = {
     ping_interval: number;
     reset_endpoint: number;
     queue_ctrl_actionid_map: {
-        "611_0": string;
-        "610_1": string;
-        "610_0": string;
-        "603_0": string;
-        "611_1": string;
+        '611_0': string;
+        '610_1': string;
+        '610_0': string;
+        '603_0': string;
+        '611_1': string;
     };
     close_and_retry_codes: number[];
     max_msg_size: number;
@@ -125,7 +125,46 @@ type ExtraVer = {
     block_friend: string;
 };
 
-export type ZPWServiceMap = LoginInfo["zpw_service_map_v3"];
+/**
+ * Represents a browser cookie in the JSON-array format commonly exported by
+ * browser tooling and accepted by Zalo credential import flows.
+ */
+export type ZaloCookie = {
+    domain?: string;
+    expirationDate?: number;
+    hostOnly?: boolean;
+    httpOnly?: boolean;
+    name: string;
+    path?: string;
+    sameSite?: string;
+    secure?: boolean;
+    session?: boolean;
+    storeId?: string;
+    value: string;
+};
+
+/**
+ * Minimal credential shape used by Zalo login flows.
+ */
+export type ZaloCredentials = {
+    imei: string;
+    cookie: ZaloCookie[];
+    userAgent: string;
+    language?: string;
+};
+
+/**
+ * Result of extracting credentials from a browser environment.
+ */
+export type ExtractedCredentials = ZaloCredentials & {
+    /** Source hints for diagnostics; fields are omitted when unavailable. */
+    source?: {
+        imei?: 'z_uuid' | 'sh_z_uuid';
+        cookieCount?: number;
+    };
+};
+
+export type ZPWServiceMap = LoginInfo['zpw_service_map_v3'];
 
 export type AppContextBase = {
     uid: string;
@@ -180,7 +219,7 @@ export const DEFAULT_RETRY_OPTIONS: Required<RetryOptions> = {
     limit: 3,
     delayMs: 250,
     maxDelayMs: 5000,
-    methods: ["GET", "HEAD"],
+    methods: ['GET', 'HEAD'],
     timeoutMs: 60000,
 };
 
@@ -221,7 +260,7 @@ class CallbacksMap extends Map<string, UploadCallback> {
             this.delete(key);
         }, ttl);
         // Never keep the process alive just for a pending upload callback.
-        if (typeof timer === "object" && typeof timer.unref === "function") timer.unref();
+        if (typeof timer === 'object' && typeof timer.unref === 'function') timer.unref();
         return super.set(key, value);
     }
 }
